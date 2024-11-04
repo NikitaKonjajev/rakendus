@@ -1,29 +1,29 @@
 pipeline {
     agent any
-
     stages {
         stage('Build') {
             steps {
                 script {
-                    docker.build("hello-world-app:${env.BUILD_ID}")
+                    // Сборка Docker образа
+                    sh 'docker build -t hello-world-app .'
                 }
             }
         }
         stage('Test') {
             steps {
                 script {
-                    docker.image("hello-world-app:${env.BUILD_ID}").inside {
-                        sh 'npm test'
-                    }
+                    // Запуск тестов
+                    sh 'npm test'
                 }
             }
         }
-        stage('Push') {
+        stage('Deploy') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-                        docker.image("hello-world-app:${env.BUILD_ID}").push()
-                    }
+                    // Логин в Docker Hub
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    // Публикация образа в Docker Hub
+                    sh 'docker push hello-world-app'
                 }
             }
         }

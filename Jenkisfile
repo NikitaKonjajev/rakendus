@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    docker.build("hello-world-app:${env.BUILD_ID}")
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    docker.image("hello-world-app:${env.BUILD_ID}").inside {
+                        sh 'npm test'
+                    }
+                }
+            }
+        }
+        stage('Push') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
+                        docker.image("hello-world-app:${env.BUILD_ID}").push()
+                    }
+                }
+            }
+        }
+    }
+}
+
